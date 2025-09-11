@@ -18,6 +18,7 @@ app.use(cookieParser());
 app.use(cors());
 
 app.use('/api/users/auth', require('./routes/auth.routes'));
+app.use('/api/users', require('./routes/user.routes'));
 
 app.use(errorHandler);
 
