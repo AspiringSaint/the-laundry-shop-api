@@ -5,7 +5,7 @@ const asyncHandler = require('express-async-handler');  // Utility to avoid writ
 /**
  * @description View user profile by ID
  * @route GET /api/users/profile/view
- * @access Private (requires authentication middleware to attach user/session)
+ * @access Private 
  */
 const getProfileById = asyncHandler(async (req, res) => {
     const { id } = req.body; // Extract user ID from request body (⚠️ usually safer to get from `req.user` in JWT middleware)
@@ -31,7 +31,7 @@ const getProfileById = asyncHandler(async (req, res) => {
 /**
  * @description Update user profile by ID
  * @route PATCH /api/users/profile/update
- * @access Private (requires authentication middleware)
+ * @access Private
  */
 const updateProfileById = asyncHandler(async (req, res) => {
     const { id } = req.body; // Extract user ID from request body

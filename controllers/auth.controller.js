@@ -1,19 +1,12 @@
 const User = require('../models/User');                 // Import User model (Mongoose schema for users)
 const bcrypt = require('bcrypt');                       // Library for hashing passwords securely
+const jwt = require('jsonwebtoken');                    // Library for
 const asyncHandler = require('express-async-handler');  // Wrapper to catch async errors and forward them to Express error middleware
 
 /**
- * @description Create New Customer (User Registration)
+ * @description User Registration
  * @route POST /api/users/auth/registration
  * @access Public
- * 
- * This endpoint allows new customers to register in the system.
- * Steps:
- * 1. Validate input fields.
- * 2. Check if the email is already registered.
- * 3. Hash the password for secure storage.
- * 4. Create a new user with role defaulting to 'customer'.
- * 5. Send a success or error response.
  */
 const registration = asyncHandler(async (req, res) => {
     // Extract required fields from the request body
@@ -52,6 +45,91 @@ const registration = asyncHandler(async (req, res) => {
     res.status(201).json({ message: 'New customer successfully created' });
 });
 
+
+/**
+ * @description User Login
+ * @route POST /api/user/auth/login
+ * @access Public
+ */
+const login = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    // Step 1: Basic validation: make sure both fields are provided
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Provide email and password' });
+    }
+
+    // Step 2: Look up the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+        // Do NOT say "user not found" (security best practice: always use generic msg)
+        return res.status(404).json({ message: 'Invalid credentials' });
+    }
+
+    // Step 3: Verify password
+    let match = false;
+
+    // First try matching against permanent password (if set)
+    if (user.password) {
+        match = await bcrypt.compare(password, user.password);
+    }
+
+    // If no match, try temporary password (used for staff accounts at first login)
+    if (!match && user.temporaryPassword) {
+        match = await bcrypt.compare(password, user.temporaryPassword);
+    }
+
+    // If neither matched → fail login
+    if (!match) {
+        return res.status(400).json({ message: 'Invalid credentials!' });
+    }
+
+    // Step 4: Generate Access Token (short-lived)
+    //    - This is returned in the response body
+    //    - Used in Authorization headers for API calls
+    const token = jwt.sign(
+        {
+            user: {
+                id: user._id,  // unique user identifier
+                role: user.role, // role-based access control
+            }
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: '15m' } // short-lived (good security practice)
+    );
+
+    // Step 5: Generate Refresh Token (long-lived)
+    //    - Stored in an HttpOnly cookie
+    //    - Used to request new access tokens
+    const refresh = jwt.sign(
+        {
+            user: {
+                id: user._id,
+                role: user.role,
+            }
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: '7d' } // lasts 7 days
+    )
+
+    // Step 6: Store refresh token in a secure cookie
+    //    - HttpOnly → not accessible via JavaScript (mitigates XSS attacks)
+    //    - secure: true → cookie only sent over HTTPS
+    //    - sameSite: 'None' → allows cross-site requests (needed if FE + BE are on different domains)
+    //    - maxAge: 7 days
+    res.cookie("jwt", refresh, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    })
+
+    // Step 7: Return access token in response
+    //    - Frontend should store this in memory (not localStorage) and attach to requests
+    res.status(200).json({ token });
+});
+
 module.exports = {
-    registration
+    registration,
+    login
 };
