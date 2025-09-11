@@ -126,7 +126,37 @@ const login = asyncHandler(async (req, res) => {
     res.status(200).json({ token });
 });
 
+
+/**
+ * @description Logout user
+ * @route POST /api/users/auth/logout
+ * @access Public
+ */
+const logout = asyncHandler(async (request, response) => {
+    // 1. Read cookies from the request
+    const cookies = request.cookies;
+
+    // 2. If no cookie is found, there's nothing to log out.
+    //    Use HTTP 204 (No Content) to indicate nothing to clear.
+    if (!cookies?.jwt) {
+        return response.sendStatus(204);
+    }
+
+    // 3. Clear the cookie by name.
+    //    Options MUST match the ones used when setting the cookie (login).
+    response.clearCookie('jwt', {
+        httpOnly: true,  // prevent JS access
+        secure: true,    // ensures cookie only sent over HTTPS
+        sameSite: 'none' // allows cross-site cookie usage (needed if frontend/backend are on different domains)
+    });
+
+    // 4. Respond success
+    return response.status(200).json({ message: 'Logged out successfully.' });
+});
+
+
 module.exports = {
     registration,
-    login
+    login,
+    logout
 };
