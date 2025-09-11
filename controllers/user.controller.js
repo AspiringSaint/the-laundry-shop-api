@@ -8,7 +8,7 @@ const asyncHandler = require('express-async-handler');  // Utility to avoid writ
  * @access Private 
  */
 const getProfileById = asyncHandler(async (req, res) => {
-    const { id } = req.body; // Extract user ID from request body (⚠️ usually safer to get from `req.user` in JWT middleware)
+    const { id } = req.user; // Extract user ID
 
     // Step 1: Validate ID format
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
