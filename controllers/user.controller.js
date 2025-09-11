@@ -5,10 +5,10 @@ const asyncHandler = require('express-async-handler');  // Utility to avoid writ
 /**
  * @description View user profile by ID
  * @route GET /api/users/profile/view
- * @access Private (requires authentication middleware to attach user/session)
+ * @access Private 
  */
 const getProfileById = asyncHandler(async (req, res) => {
-    const { id } = req.body; // Extract user ID from request body (⚠️ usually safer to get from `req.user` in JWT middleware)
+    const { id } = req.user; // Extract user ID
 
     // Step 1: Validate ID format
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -31,10 +31,10 @@ const getProfileById = asyncHandler(async (req, res) => {
 /**
  * @description Update user profile by ID
  * @route PATCH /api/users/profile/update
- * @access Private (requires authentication middleware)
+ * @access Private
  */
 const updateProfileById = asyncHandler(async (req, res) => {
-    const { id } = req.body; // Extract user ID from request body
+    const { id } = req.user; // Extract user ID
 
     // Step 1: Validate ID format
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -62,11 +62,7 @@ const updateProfileById = asyncHandler(async (req, res) => {
  * @access Private 
  */
 const deleteProfileById = asyncHandler(async (req, res) => {
-    const { id } = req.body;
-    // ⚠️ You’re currently pulling the `id` from the request body.
-    // In a REST API, it’s usually better to pass it in the URL:
-    // DELETE /api/users/profile/:id → accessed via req.params.id
-    // OR even safer: delete only the "currently logged in user" (req.user.id from JWT).
+    const { id } = req.user; // Extract user ID
 
     // Step 1: Validate the ID
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
