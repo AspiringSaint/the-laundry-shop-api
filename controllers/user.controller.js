@@ -1,27 +1,61 @@
-const User = require('../models/User');
-const mongoose = require('mongoose');
-const asyncHandler = require('express-async-handler');
+const User = require('../models/User');                 // Mongoose User model
+const mongoose = require('mongoose');                   // Mongoose library for working with MongoDB IDs, schemas, etc.
+const asyncHandler = require('express-async-handler');  // Utility to avoid writing try/catch everywhere, automatically forwards errors to Express error handler
 
 /**
- * @description View user info
+ * @description View user profile by ID
  * @route GET /api/users/profile/view
- * @access Private
+ * @access Private (requires authentication middleware to attach user/session)
  */
 const getProfileById = asyncHandler(async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.body; // Extract user ID from request body (⚠️ usually safer to get from `req.user` in JWT middleware)
 
+    // Step 1: Validate ID format
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ message: 'Invalid User Id' });
     }
 
+    // Step 2: Find user by ID, exclude sensitive fields (passwords)
     const user = await User.findById(id).select('-password -temporaryPassword');
+
+    // Step 3: Handle case where user is not found
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
+    // Step 4: Send user info
     res.status(200).json(user);
-})
+});
+
+
+/**
+ * @description Update user profile by ID
+ * @route PATCH /api/users/profile/update
+ * @access Private (requires authentication middleware)
+ */
+const updateProfileById = asyncHandler(async (req, res) => {
+    const { id } = req.body; // Extract user ID from request body
+
+    // Step 1: Validate ID format
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid User Id' });
+    }
+
+    // Step 2: Update user record with fields from `req.body`
+    // ⚠️ WARNING: This is a direct update with user-provided body, which could lead to privilege escalation 
+    // (e.g. updating their `role` to "admin"). Consider sanitizing allowed fields.
+    const user = await User.findByIdAndUpdate(id, req.body, { new: true });
+
+    // Step 3: Handle not found
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Step 4: Return success response
+    res.status(200).json({ message: 'User info updated' });
+});
 
 module.exports = {
-    getProfileById
+    getProfileById,
+    updateProfileById
 };
