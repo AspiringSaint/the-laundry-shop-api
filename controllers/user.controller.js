@@ -34,7 +34,7 @@ const getProfileById = asyncHandler(async (req, res) => {
  * @access Private
  */
 const updateProfileById = asyncHandler(async (req, res) => {
-    const { id } = req.body; // Extract user ID from request body
+    const { id } = req.user; // Extract user ID
 
     // Step 1: Validate ID format
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {

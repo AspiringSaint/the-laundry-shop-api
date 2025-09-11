@@ -8,7 +8,7 @@ const {
 
 // Profile
 router.get('/profile/view', authenticate, getProfileById);
-router.patch('/profile/update', updateProfileById);
+router.patch('/profile/update', authenticate, updateProfileById);
 router.delete('/profile/delete', deleteProfileById);
 
 // Admin CRUD
