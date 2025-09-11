@@ -62,11 +62,7 @@ const updateProfileById = asyncHandler(async (req, res) => {
  * @access Private 
  */
 const deleteProfileById = asyncHandler(async (req, res) => {
-    const { id } = req.body;
-    // ⚠️ You’re currently pulling the `id` from the request body.
-    // In a REST API, it’s usually better to pass it in the URL:
-    // DELETE /api/users/profile/:id → accessed via req.params.id
-    // OR even safer: delete only the "currently logged in user" (req.user.id from JWT).
+    const { id } = req.user; // Extract user ID
 
     // Step 1: Validate the ID
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {

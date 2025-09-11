@@ -9,7 +9,7 @@ const {
 // Profile
 router.get('/profile/view', authenticate, getProfileById);
 router.patch('/profile/update', authenticate, updateProfileById);
-router.delete('/profile/delete', deleteProfileById);
+router.delete('/profile/delete', authenticate, deleteProfileById);
 
 // Admin CRUD
 
