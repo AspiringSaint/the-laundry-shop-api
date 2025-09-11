@@ -55,7 +55,38 @@ const updateProfileById = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'User info updated' });
 });
 
+
+/**
+ * @description Delete user by ID
+ * @route DELETE /api/users/profile/delete
+ * @access Private 
+ */
+const deleteProfileById = asyncHandler(async (req, res) => {
+    const { id } = req.body;
+    // ⚠️ You’re currently pulling the `id` from the request body.
+    // In a REST API, it’s usually better to pass it in the URL:
+    // DELETE /api/users/profile/:id → accessed via req.params.id
+    // OR even safer: delete only the "currently logged in user" (req.user.id from JWT).
+
+    // Step 1: Validate the ID
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid User Id' });
+    }
+
+    // Step 2: Try to delete user from DB
+    const user = await User.findByIdAndDelete(id);
+
+    // Step 3: Handle "not found"
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Step 4: Return success response
+    res.status(200).json({ message: "User deleted successfully" });
+});
+
 module.exports = {
     getProfileById,
-    updateProfileById
+    updateProfileById,
+    deleteProfileById
 };
