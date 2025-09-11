@@ -89,10 +89,9 @@ const login = asyncHandler(async (req, res) => {
     //    - Used in Authorization headers for API calls
     const token = jwt.sign(
         {
-            user: {
-                id: user._id,  // unique user identifier
-                role: user.role, // role-based access control
-            }
+            id: user._id,  // unique user identifier
+            role: user.role, // role-based access control
+
         },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: '15m' } // short-lived (good security practice)
@@ -103,10 +102,8 @@ const login = asyncHandler(async (req, res) => {
     //    - Used to request new access tokens
     const refresh = jwt.sign(
         {
-            user: {
-                id: user._id,
-                role: user.role,
-            }
+            id: user._id,
+            role: user.role,
         },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: '7d' } // lasts 7 days
